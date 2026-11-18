@@ -1,96 +1,109 @@
-import type { SacramentMeeting } from "./types";
+import { neon } from "@neondatabase/serverless";
+import type { Hymn, MeetingType, SacramentMeeting, SpeakerItem, WardBusinessItem } from "./types";
 
-const meetings: SacramentMeeting[] = [
-  {
-    id: 1,
-    date: "2026-11-08",
-    meetingType: "regular",
-    presiding: "Bishop Smith",
-    conducting: "Brother Jones",
-    announcements: ["Ward activity on Saturday"],
-    openingHymn: { number: 2, title: "The Spirit of God" },
-    openingPrayer: "Sister Williams",
-    wardBusiness: [{ description: "Ward announcements" }],
-    stakeBusiness: false,
-    sacramentHymn: { number: 169, title: "In Remembrance of Thy Suffering" },
-    speakers: [
-      { name: "Sister Brown", topic: "Faith", type: "speaker" },
-      { name: "Ward Choir", topic: "Special hymn", type: "musical-number" },
-    ],
-    closingHymn: { number: 31, title: "O God, Our Help in Ages Past" },
-    closingPrayer: "Brother Davis",
-  },
-  {
-    id: 2,
-    date: "2026-11-01",
-    meetingType: "testimony",
-    presiding: "Bishop Smith",
-    conducting: "Brother Jones",
-    openingHymn: { number: 2, title: "The Spirit of God" },
-    openingPrayer: "Sister Brown",
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 169, title: "In Remembrance of Thy Suffering" },
-    speakers: [],
-    closingHymn: { number: 31, title: "O God, Our Help in Ages Past" },
-    closingPrayer: "Brother Davis",
-  },
-  {
-    id: 3,
-    date: "2026-10-25",
-    meetingType: "regular",
-    presiding: "Bishop Smith",
-    conducting: "Brother Jones",
-    openingHymn: { number: 2, title: "The Spirit of God" },
-    openingPrayer: "Sister Williams",
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 169, title: "In Remembrance of Thy Suffering" },
-    speakers: [
-      { name: "Brother Davis", topic: "Service", type: "speaker" },
-    ],
-    closingHymn: { number: 31, title: "O God, Our Help in Ages Past" },
-    closingPrayer: "Sister Brown",
-  },
-  {
-    id: 4,
-    date: "2026-10-18",
-    meetingType: "stake",
-    presiding: "Stake President",
-    conducting: "Stake Counselor",
-    openingHymn: { number: 2, title: "The Spirit of God" },
-    openingPrayer: "Brother Davis",
-    wardBusiness: [],
-    stakeBusiness: true,
-    sacramentHymn: { number: 169, title: "In Remembrance of Thy Suffering" },
-    speakers: [
-      { name: "Stake President", topic: "Faith", type: "speaker" },
-    ],
-    closingHymn: { number: 31, title: "O God, Our Help in Ages Past" },
-    closingPrayer: "Sister Williams",
-  },
-  {
-    id: 5,
-    date: "2026-10-11",
-    meetingType: "general",
-    presiding: "Church Leadership",
-    conducting: "Conference Presidency",
-    openingHymn: { number: 2, title: "The Spirit of God" },
-    openingPrayer: "Brother Jones",
-    wardBusiness: [],
-    stakeBusiness: false,
-    sacramentHymn: { number: 169, title: "In Remembrance of Thy Suffering" },
-    speakers: [],
-    closingHymn: { number: 31, title: "O God, Our Help in Ages Past" },
-    closingPrayer: "Sister Brown",
-  },
-];
+const PAGE_SIZE = 5;
 
-export function getMeetings(date?: string | null): SacramentMeeting[] {
-  if (date) return meetings.filter((meeting) => meeting.date === date);
-  return meetings;
+type MeetingRow = {
+  id: number;
+  date: Date | string;
+  meeting_type: MeetingType;
+  presiding: string;
+  conducting: string;
+  announcements: string[] | null;
+  opening_hymn: Hymn;
+  opening_prayer: string;
+  ward_business: WardBusinessItem[];
+  stake_business: boolean;
+  sacrament_hymn: Hymn;
+  speakers: SpeakerItem[];
+  closing_hymn: Hymn;
+  closing_prayer: string;
+};
+
+function database() {
+  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is not configured");
+  return neon(process.env.DATABASE_URL);
 }
 
-export function getMeetingById(id: number): SacramentMeeting | null {
-  return meetings.find((meeting) => meeting.id === id) ?? null;
+function toMeeting(row: MeetingRow): SacramentMeeting {
+  return {
+    id: row.id,
+    date: row.date instanceof Date ? row.date.toISOString().slice(0, 10) : row.date,
+    meetingType: row.meeting_type,
+    presiding: row.presiding,
+    conducting: row.conducting,
+    announcements: row.announcements ?? undefined,
+    openingHymn: row.opening_hymn,
+    openingPrayer: row.opening_prayer,
+    wardBusiness: row.ward_business,
+    stakeBusiness: row.stake_business,
+    sacramentHymn: row.sacrament_hymn,
+    speakers: row.speakers,
+    closingHymn: row.closing_hymn,
+    closingPrayer: row.closing_prayer,
+  };
+}
+
+export async function getMeetings(query = "", page = 1): Promise<SacramentMeeting[]> {
+  const sql = database();
+  const pattern = `%${query.trim()}%`;
+  const offset = (Math.max(1, page) - 1) * PAGE_SIZE;
+  const rows = await sql`
+    SELECT * FROM meetings
+    WHERE presiding ILIKE ${pattern}
+       OR conducting ILIKE ${pattern}
+       OR meeting_type ILIKE ${pattern}
+       OR EXISTS (
+         SELECT 1 FROM jsonb_array_elements(speakers) AS speaker
+         WHERE speaker->>'name' ILIKE ${pattern}
+       )
+    ORDER BY date DESC, id DESC
+    LIMIT ${PAGE_SIZE} OFFSET ${offset}
+  `;
+  return (rows as MeetingRow[]).map(toMeeting);
+}
+
+export async function getMeetingsTotalPages(query = ""): Promise<number> {
+  const sql = database();
+  const pattern = `%${query.trim()}%`;
+  const rows = await sql`
+    SELECT count(*)::int AS total FROM meetings
+    WHERE presiding ILIKE ${pattern}
+       OR conducting ILIKE ${pattern}
+       OR meeting_type ILIKE ${pattern}
+       OR EXISTS (
+         SELECT 1 FROM jsonb_array_elements(speakers) AS speaker
+         WHERE speaker->>'name' ILIKE ${pattern}
+       )
+  `;
+  return Math.ceil((rows[0].total as number) / PAGE_SIZE);
+}
+
+export async function getMeetingById(id: number): Promise<SacramentMeeting | null> {
+  const sql = database();
+  const rows = await sql`SELECT * FROM meetings WHERE id = ${id} LIMIT 1`;
+  return rows.length ? toMeeting(rows[0] as MeetingRow) : null;
+}
+
+export async function getMeetingsByDate(date: string): Promise<SacramentMeeting[]> {
+  const sql = database();
+  const rows = await sql`SELECT * FROM meetings WHERE date = ${date} ORDER BY id DESC`;
+  return (rows as MeetingRow[]).map(toMeeting);
+}
+
+// W04 mutation stubs.
+export async function createMeeting(_meeting: Omit<SacramentMeeting, "id">): Promise<never> {
+  void _meeting;
+  throw new Error("Creating meetings is planned for W04");
+}
+
+export async function updateMeeting(_id: number, _meeting: Partial<SacramentMeeting>): Promise<never> {
+  void _id;
+  void _meeting;
+  throw new Error("Updating meetings is planned for W04");
+}
+
+export async function deleteMeeting(_id: number): Promise<never> {
+  void _id;
+  throw new Error("Deleting meetings is planned for W04");
 }
