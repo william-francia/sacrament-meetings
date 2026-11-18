@@ -20,14 +20,16 @@ export default function MeetingDetail({ meeting }: MeetingDetailProps) {
       <p>Presiding: {meeting.presiding}</p>
       <p>Conducting: {meeting.conducting}</p>
 
-      <section className="mt-6">
-        <h2 className="text-xl font-semibold">Announcements</h2>
-        <ul className="list-disc pl-6">
-          {(meeting.announcements ?? []).map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      </section>
+      {meeting.announcements && meeting.announcements.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold">Announcements</h2>
+          <ul className="list-disc pl-6">
+            {meeting.announcements.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-6 space-y-2">
         <h2 className="text-xl font-semibold">Meeting Agenda</h2>
