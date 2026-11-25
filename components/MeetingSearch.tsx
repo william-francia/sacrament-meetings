@@ -15,7 +15,7 @@ export default function MeetingSearch({ initialQuery }: { initialQuery: string }
       const params = new URLSearchParams(searchParams.toString());
       if (query.trim()) params.set("query", query.trim());
       else params.delete("query");
-      params.delete("page");
+      params.set("page", "1");
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`);
     }, 300);
     return () => clearTimeout(timer);

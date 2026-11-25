@@ -1,6 +1,6 @@
 import MeetingCard from "@/components/MeetingCard";
 import MeetingSearch from "@/components/MeetingSearch";
-import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import { getMeetings, getMeetingsTotalPages } from "@/lib/meetings-db";
 
 export default async function MeetingsPage({
@@ -16,12 +16,6 @@ export default async function MeetingsPage({
     ? Math.min(requestedPage, Math.max(1, totalPages))
     : 1;
   const meetings = await getMeetings(query, page);
-  const pageHref = (target: number) => {
-    const url = new URLSearchParams();
-    if (query) url.set("query", query);
-    url.set("page", String(target));
-    return `/meetings?${url}`;
-  };
 
   return (
     <section>
@@ -37,13 +31,7 @@ export default async function MeetingsPage({
           </div>
         </section>
       )}
-      {totalPages > 1 && (
-        <nav aria-label="Meeting pages" className="mt-6 flex items-center gap-4">
-          {page > 1 && <Link href={pageHref(page - 1)} className="text-blue-700 underline">Previous</Link>}
-          <span>Page {page} of {totalPages}</span>
-          {page < totalPages && <Link href={pageHref(page + 1)} className="text-blue-700 underline">Next</Link>}
-        </nav>
-      )}
+      <Pagination page={page} totalPages={totalPages} query={query} />
     </section>
   );
 }
