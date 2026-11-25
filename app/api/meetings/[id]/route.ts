@@ -1,13 +1,14 @@
 import { getMeetingById } from "@/lib/meetings-db";
+import { parseMeetingId } from "@/lib/meeting-validation";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const meetingId = Number(id);
+  const meetingId = parseMeetingId(id);
 
-  if (!/^\d+$/.test(id) || !Number.isSafeInteger(meetingId) || meetingId <= 0) {
+  if (meetingId === null) {
     return Response.json({ error: "Invalid meeting ID" }, { status: 400 });
   }
 

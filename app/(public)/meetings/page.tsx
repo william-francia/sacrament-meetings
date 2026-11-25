@@ -2,6 +2,8 @@ import MeetingCard from "@/components/MeetingCard";
 import MeetingSearch from "@/components/MeetingSearch";
 import Pagination from "@/components/Pagination";
 import { getMeetings, getMeetingsTotalPages } from "@/lib/meetings-db";
+import { isAdminAuthenticated } from "@/lib/auth";
+import Link from "next/link";
 
 export default async function MeetingsPage({
   searchParams,
@@ -16,11 +18,13 @@ export default async function MeetingsPage({
     ? Math.min(requestedPage, Math.max(1, totalPages))
     : 1;
   const meetings = await getMeetings(query, page);
+  const admin = await isAdminAuthenticated();
 
   return (
     <section>
       <h1 className="text-3xl font-bold">Meetings</h1>
-      <MeetingSearch initialQuery={query} />
+      {admin && <Link href="/meetings/new" className="no-print mt-4 inline-block rounded-lg bg-blue-800 px-4 py-2 text-white">New meeting</Link>}
+      <MeetingSearch key={query} initialQuery={query} />
       {meetings.length === 0 ? (
         <p className="mt-4">No meetings are available.</p>
       ) : (

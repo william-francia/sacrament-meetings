@@ -1,9 +1,13 @@
 import { getMeetings, getMeetingsByDate } from "@/lib/meetings-db";
+import { isValidISODate } from "@/lib/meeting-validation";
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const date = params.get("date");
-  if (date) return Response.json(await getMeetingsByDate(date));
+  if (date !== null) {
+    if (!isValidISODate(date)) return Response.json({ error: "Invalid date" }, { status: 400 });
+    return Response.json(await getMeetingsByDate(date));
+  }
 
   const query = params.get("query") ?? "";
   const pageParam = params.get("page") ?? "1";

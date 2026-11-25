@@ -4,6 +4,8 @@ export type MeetingType =
   | "stake"
   | "general";
 
+export const MEETING_TYPES: MeetingType[] = ["regular", "testimony", "stake", "general"];
+
 export interface Hymn {
   number: number;
   title: string;
@@ -35,3 +37,20 @@ export interface SacramentMeeting {
   closingHymn: Hymn;
   closingPrayer: string;
 }
+
+export type MeetingFormValues = Omit<SacramentMeeting, "id">;
+
+export type MeetingFormState = {
+  message: string;
+  errors: Record<string, string[]>;
+  values?: Record<string, unknown>;
+};
+
+export const INITIAL_MEETING_FORM_STATE: MeetingFormState = {
+  message: "",
+  errors: {},
+};
+
+export type MeetingMutationResult =
+  | { ok: true; meeting: SacramentMeeting }
+  | { ok: false; reason: "not-found" | "duplicate-date" };

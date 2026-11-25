@@ -8,10 +8,11 @@ export default function MeetingSearch({ initialQuery }: { initialQuery: string }
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const urlQuery = searchParams.get("query") ?? "";
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (query.trim() === (searchParams.get("query") ?? "")) return;
+      if (query.trim() === urlQuery) return;
       const params = new URLSearchParams(searchParams.toString());
       if (query.trim()) params.set("query", query.trim());
       else params.delete("query");
@@ -19,7 +20,7 @@ export default function MeetingSearch({ initialQuery }: { initialQuery: string }
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`);
     }, 300);
     return () => clearTimeout(timer);
-  }, [query, pathname, router, searchParams]);
+  }, [query, pathname, router, searchParams, urlQuery]);
 
   return (
     <div className="mt-4">
