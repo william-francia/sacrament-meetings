@@ -22,14 +22,20 @@ export default async function MeetingsPage({
 
   return (
     <section>
-      <h1 className="text-3xl font-bold">Meetings</h1>
-      {admin && <Link href="/meetings/new" className="no-print mt-4 inline-block rounded-lg bg-blue-800 px-4 py-2 text-white">New meeting</Link>}
-      <MeetingSearch key={query} initialQuery={query} />
+      <div className="rounded-2xl bg-gradient-to-r from-slate-100 to-teal-50 px-6 py-9 sm:px-10">
+        <p className="text-sm font-bold tracking-[0.2em] text-teal-700">MEETINGS</p>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#122d43] sm:text-5xl">Meetings</h1>
+        <p className="mt-3 max-w-xl text-slate-600">Plan, organize, and review sacrament meeting programs.</p>
+      </div>
+      <div className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <MeetingSearch key={query} initialQuery={query} />
+      </div>
+      {admin && <Link href="/meetings/new" className="no-print mt-5 inline-block rounded-lg bg-[#0f6269] px-4 py-2 font-semibold text-white">New meeting</Link>}
       {meetings.length === 0 ? (
-        <p className="mt-4">No meetings are available.</p>
+        <p className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">No meetings match this search.</p>
       ) : (
         <section className="mt-6">
-          <h2 className="mb-4 text-xl font-semibold">Meeting programs</h2>
+          <h2 className="mb-4 text-2xl font-bold text-[#122d43]">Meeting programs</h2>
           <div className="grid gap-4">
             {meetings.map((meeting) => <MeetingCard key={meeting.id} meeting={meeting} />)}
           </div>

@@ -23,15 +23,15 @@ export default function MeetingSearch({ initialQuery }: { initialQuery: string }
   }, [query, pathname, router, searchParams, urlQuery]);
 
   return (
-    <div className="mt-4">
-      <label htmlFor="meeting-search" className="block font-medium">Search meetings</label>
+    <div>
+      <label htmlFor="meeting-search" className="block font-semibold text-slate-800">Search meetings</label>
       <input
         id="meeting-search"
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Speaker, presiding, conducting, or type"
-        className="mt-1 w-full rounded border px-3 py-2"
+        className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus-visible:border-teal-700"
       />
     </div>
   );

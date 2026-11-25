@@ -1,22 +1,23 @@
 import { Suspense } from "react";
 import NavLinks from "./NavLinks";
 import CurrentDate from "./CurrentDate";
+import Link from "next/link";
 
 export default function Header() {
   return (
-    <header className="bg-blue-800 p-5 text-white">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-xl font-bold">
-            Sacrament Meeting Planner
-          </p>
+    <header className="bg-[#21394d] px-5 py-5 text-white shadow-sm">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5">
+        <div className="flex items-center gap-4">
+          <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/40 text-2xl">▤</span>
+          <div>
+          <Link href="/" className="text-xl font-semibold tracking-tight sm:text-2xl">Sacrament Meeting Planner</Link>
 
           <p className="text-sm">
             Sample Ward |{" "}
             <Suspense fallback="Loading date...">
               <CurrentDate />
             </Suspense>
-          </p>
+          </p></div>
         </div>
 
         <Suspense fallback={<span>Loading navigation...</span>}>

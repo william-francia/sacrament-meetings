@@ -14,7 +14,7 @@ export default function NavLinks() {
   ];
 
   return (
-    <nav aria-label="Main navigation" className="flex flex-wrap gap-4">
+    <nav aria-label="Main navigation" className="flex flex-wrap items-center gap-5 sm:gap-8">
       {links.map((link) => {
         const active =
           link.href === "/"
@@ -29,7 +29,7 @@ export default function NavLinks() {
             key={link.href}
             href={link.href}
             aria-current={active ? "page" : undefined}
-            className={active ? "font-bold underline" : "hover:underline"}
+            className={`border-b-[3px] pb-1 text-sm font-medium transition-colors hover:text-teal-200 sm:text-base ${active ? "border-teal-300 text-white" : "border-transparent text-slate-100"}`}
           >
             {link.label}
           </Link>
