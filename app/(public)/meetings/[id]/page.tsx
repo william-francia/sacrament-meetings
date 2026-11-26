@@ -5,6 +5,12 @@ import { parseMeetingId } from "@/lib/meeting-validation";
 import { isAdminAuthenticated } from "@/lib/auth";
 import DeleteMeeting from "@/components/DeleteMeeting";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const id = parseMeetingId((await params).id);
+  return { title: "Meeting program", description: "View a sacrament meeting program.", ...(id ? { alternates: { canonical: `/meetings/${id}` } } : {}) };
+}
 
 export default async function MeetingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

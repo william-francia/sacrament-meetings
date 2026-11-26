@@ -44,3 +44,9 @@ Set the four environment variables securely in Vercel, point `DATABASE_URL` to t
 ## Future improvements
 
 Add a managed identity provider with individual administrator accounts, audit logs, and automated database-backed tests. Expand visual and keyboard checks across mobile and print views.
+
+## Account requests
+
+The existing environment administrator remains the sole approver. Account requests are disabled unless `ENABLE_ACCOUNT_REQUESTS=true`; keep this unset in production until the flow has been tested. Apply `migrations/001_account_requests.sql` to an isolated Neon development branch first, and point the local `DATABASE_URL` to that branch before enabling and testing registration. The migration adds a separate account request table and does not modify existing meetings. Requests store `scrypt` password hashes; newly registered accounts cannot sign in or manage meetings until the environment administrator approves them at `/admin/requests`. Approved accounts may use their username or email to sign in. Apply the reviewed migration to production only as a separate, authorized deployment step.
+
+Password recovery is intentionally unavailable until a transactional email provider is configured. The recovery page does not collect requests or claim that an email was sent. A future implementation needs provider credentials kept server-side, hashed single-use reset tokens, an expiry, and durable throttling. The existing single environment administrator can change their password through environment configuration.

@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { accountIsApproved } from "./accounts-db";
 
 const COOKIE_NAME = "sacrament_meetings_admin";
 const MAX_AGE_SECONDS = 60 * 60 * 8;
@@ -40,19 +41,36 @@ export function createAdminToken(username: string) {
   return `${username}.${expires}.${signed}`;
 }
 
-export async function isAdminAuthenticated() {
-  const key = signingKey();
-  if (!key || !process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) return false;
+export function createAccountToken(id: string) {
+  return createAdminToken(`user:${id}`);
+}
+
+async function verifiedSubject() {
+  if (!signingKey()) return null;
   const token = (await cookies()).get(COOKIE_NAME)?.value;
-  if (!token) return false;
+  if (!token) return null;
   const parts = token.split(".");
-  if (parts.length !== 3 || parts[0] !== process.env.ADMIN_USERNAME || !/^\d+$/.test(parts[1])) return false;
-  if (Number(parts[1]) <= Math.floor(Date.now() / 1000)) return false;
+  if (parts.length !== 3 || !/^\d+$/.test(parts[1])) return null;
+  if (Number(parts[1]) <= Math.floor(Date.now() / 1000)) return null;
   const expected = signature(parts[0], parts[1]);
-  if (!expected) return false;
+  if (!expected) return null;
   const actualBytes = Buffer.from(parts[2]);
   const expectedBytes = Buffer.from(expected);
-  return actualBytes.length === expectedBytes.length && timingSafeEqual(actualBytes, expectedBytes);
+  return actualBytes.length === expectedBytes.length && timingSafeEqual(actualBytes, expectedBytes) ? parts[0] : null;
+}
+
+export async function isEnvAdminAuthenticated() {
+  return Boolean(process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD && (await verifiedSubject()) === process.env.ADMIN_USERNAME);
+}
+
+export async function isAdminAuthenticated() {
+  const subject = await verifiedSubject();
+  if (!subject) return false;
+  if (subject === process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) return true;
+  if (process.env.ENABLE_ACCOUNT_REQUESTS !== "true") return false;
+  const match = /^user:([0-9a-f-]{36})$/.exec(subject);
+  if (!match) return false;
+  try { return await accountIsApproved(match[1]); } catch { return false; }
 }
 
 export const adminCookie = {

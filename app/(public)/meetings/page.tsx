@@ -4,6 +4,9 @@ import Pagination from "@/components/Pagination";
 import { getMeetings, getMeetingsTotalPages } from "@/lib/meetings-db";
 import { isAdminAuthenticated } from "@/lib/auth";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Meetings", description: "Browse, search, and review sacrament meeting programs.", alternates: { canonical: "/meetings" } };
 
 export default async function MeetingsPage({
   searchParams,

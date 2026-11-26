@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import NavLinks from "./NavLinks";
 import CurrentDate from "./CurrentDate";
 import Link from "next/link";
+import AuthNav from "./AuthNav";
 
 export default function Header() {
   return (
@@ -23,6 +24,7 @@ export default function Header() {
         <Suspense fallback={<span>Loading navigation...</span>}>
           <NavLinks />
         </Suspense>
+        <Suspense fallback={<span className="text-sm text-slate-200">Account</span>}><AuthNav /></Suspense>
       </div>
     </header>
   );
