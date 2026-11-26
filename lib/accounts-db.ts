@@ -27,3 +27,33 @@ export async function pendingAccounts() {
 export async function approveAccount(id: string) {
   await db()`UPDATE account_requests SET approved_at = now() WHERE id = ${id}::uuid AND approved_at IS NULL`;
 }
+
+export async function accountForReset(email: string) {
+  const rows = await db()`SELECT id, email FROM account_requests WHERE lower(email) = ${email.toLowerCase()} LIMIT 1`;
+  return rows[0] as { id: string; email: string } | undefined;
+}
+
+export async function createPasswordResetToken(accountId: string, tokenHash: string) {
+  const recent = await db()`SELECT count(*)::int AS total FROM password_reset_tokens WHERE account_id = ${accountId}::uuid AND created_at > now() - interval '1 hour'`;
+  if (Number(recent[0].total) >= 3) return false;
+  await db()`INSERT INTO password_reset_tokens (account_id, token_hash, expires_at) VALUES (${accountId}::uuid, ${tokenHash}, now() + interval '30 minutes')`;
+  return true;
+}
+
+export async function consumePasswordResetToken(tokenHash: string, passwordHash: string) {
+  const rows = await db()`WITH consumed AS (
+    UPDATE password_reset_tokens SET used_at = now()
+    WHERE token_hash = ${tokenHash} AND used_at IS NULL AND expires_at > now()
+    RETURNING account_id
+  ), changed AS (
+    UPDATE account_requests SET password_hash = ${passwordHash}
+    FROM consumed WHERE account_requests.id = consumed.account_id
+    RETURNING account_requests.id
+  ), invalidated AS (
+    UPDATE password_reset_tokens SET used_at = now()
+    WHERE account_id IN (SELECT id FROM changed)
+      AND token_hash <> ${tokenHash} AND used_at IS NULL
+    RETURNING id
+  ) SELECT EXISTS(SELECT 1 FROM changed) AS updated`;
+  return rows[0]?.updated === true;
+}
