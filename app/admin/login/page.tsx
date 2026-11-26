@@ -9,7 +9,10 @@ export default function AdminLoginPage() {
   return <section className="grid min-h-screen w-full overflow-hidden bg-[#fffdfa] lg:grid-cols-2">
     <div className="relative min-h-56 overflow-hidden bg-[#d9e3e6] sm:min-h-72 lg:min-h-full">
       <Image src="/buenos-aires-temple.webp" alt="Buenos Aires Argentina Temple" fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover object-center" />
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0d2a40]/85 via-[#0d2a40]/40 to-transparent" />
+      <svg aria-hidden="true" viewBox="0 0 1000 320" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-44 w-full sm:h-56 lg:h-[min(38vh,320px)]">
+        <path d="M0 0H1000V160C930 240 690 290 0 300Z" fill="#12334b" />
+        <path d="M0 300C690 290 930 240 1000 160" fill="none" stroke="#d4ad5c" strokeWidth="6" vectorEffect="non-scaling-stroke" />
+      </svg>
       <div className="absolute left-6 top-7 flex items-center gap-4 text-white drop-shadow-md sm:left-10 sm:top-9"><span aria-hidden="true" className="text-4xl">▦</span><span className="border-l border-white/70 pl-4 text-xl font-semibold leading-tight sm:text-2xl">Sacrament Meeting<br />Planner</span></div>
     </div>
     <div className="relative flex items-center justify-center overflow-hidden px-6 py-14 sm:px-10 lg:px-14">
